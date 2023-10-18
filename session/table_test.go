@@ -5,6 +5,8 @@ import (
 	"SimpleGoORM/log"
 	"database/sql"
 	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type User struct {
