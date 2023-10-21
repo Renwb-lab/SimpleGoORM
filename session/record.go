@@ -7,15 +7,26 @@ import (
 )
 
 func (s *Session) Insert(values ...interface{}) (int64, error) {
+	// values 为 []user{} 这样的切片
+	// recordValues 是values中每个元素对应值组成的切片
 	recordValues := make([]interface{}, 0)
 	for _, value := range values {
 		table := s.Model(value).RefTable()
+		// s.clause.Set(clause.INSERT 语句准备需要插入的表和字段
 		s.clause.Set(clause.INSERT, table.Name, table.FieldNames)
+		// RecordValues 方法将元素value（user）中取出每个字段的数值，并组成[]interface{}
+		// append recordValues 表示将从valu中取出来的数值添加到recordValues中。
+		// 示例：recordValues [["xx", 1], ["yy", 2]]
 		recordValues = append(recordValues, table.RecordValues(value))
 	}
 
+	// s.clause.Set(clause.VALUES 给出需要插入的具体数值
+	// sql: "(?,?), (?,?)"
+	// args: [["xx", 1], ["yy", 2]]
 	s.clause.Set(clause.VALUES, recordValues...)
+	// 拼接 insert 和 values 语句
 	sql, vars := s.clause.Build(clause.INSERT, clause.VALUES)
+	// 执行并返回
 	result, err := s.Raw(sql, vars...).Exec()
 	if err != nil {
 		return 0, err
@@ -27,10 +38,15 @@ func (s *Session) Insert(values ...interface{}) (int64, error) {
 func (s *Session) Find(values interface{}) error {
 	s.CallMethod(BeforeQuery, nil)
 
+	// values 为*[]user, destSlice 是为了获取values指向的内容， 即切片 []user。
+	// 这样后续只要向destSlice添加数就可以了。因为传递的是指针，所以可以正常返回。
 	destSlice := reflect.Indirect(reflect.ValueOf(values))
+	// 获取destSlice切片中的元素类型，即user
 	destType := destSlice.Type().Elem()
+	// 使用reflect.New创建一个user对象，并将user对象传递给s.Model方法。
 	table := s.Model(reflect.New(destType).Elem().Interface()).RefTable()
 
+	// 准备查询语句
 	s.clause.Set(clause.SELECT, table.Name, table.FieldNames)
 	sql, vars := s.clause.Build(clause.SELECT, clause.WHERE, clause.ORDERBY, clause.LIMIT)
 	rows, err := s.Raw(sql, vars...).QueryRows()
@@ -39,15 +55,20 @@ func (s *Session) Find(values interface{}) error {
 	}
 
 	for rows.Next() {
+		// 新创建一个对象user
 		dest := reflect.New(destType).Elem()
+		// 将对象user中的字段使用[]interface，为后续的scan方法做准备。
 		var values []interface{}
 		for _, name := range table.FieldNames {
 			values = append(values, dest.FieldByName(name).Addr().Interface())
 		}
+		// 将数据填充到[]interface中。由于都是地址，所以就是将结果填充到了新建的对象user中。
 		if err := rows.Scan(values...); err != nil {
 			return err
 		}
 		s.CallMethod(AfterQuery, dest.Addr().Interface())
+		// reflect.Append(destSlice, dest) 表示将新建的user对象append到destSlice, 并返回destSlice
+		// destSlice.Set(x） 表示使用append后到slice更新destSlice
 		destSlice.Set(reflect.Append(destSlice, dest))
 	}
 	return rows.Close()
