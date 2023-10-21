@@ -1,7 +1,7 @@
 # SimpleGoORM
  
 ### 链接：
- link: [7天从零实现ORM框架](7天从零实现ORM框架)
+ link: [7天从零实现ORM框架](https://mp.weixin.qq.com/s?__biz=MzUxOTAwNTM2MQ==&mid=2247486563&idx=1&sn=533fae8f1a4aabadd06064de67d5d892&chksm=f98179bdcef6f0ab8ec9b45192ae04e40a209afab07653fba5482c2981f173101ca49c8b7b79&scene=178&cur_album_id=2207687429896110085#rd)
 
 ### 内容
 主要内容如下表。
@@ -24,6 +24,6 @@
 - 通过Schema完成结构体对数据表类型的转换， 完成转化的第二步。
 - 使用Clause将复杂的SQL转化为多个简单的SQL，为后续增强Schema方法做好了准备。
 - 通过反射基础完成ORM的基础能力。
-- 技术点，使用反射时一定需要理解interface的结构信息。
+- 技术点，使用反射时一定需要理解interface的结构信息，转化的时候
  
 
